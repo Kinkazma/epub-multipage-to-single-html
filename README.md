@@ -26,8 +26,7 @@ background, with a subtle drop shadow and an optional page label (“Page 1”,
 - Inlines images (`.png`, `.gif`, `.jpg`, `.jpeg`) as base64 data URIs.
 - Rewrites internal links `href="page-N.xhtml"` to anchor links `href="#page-N"`.
 - Wraps each page in a `.page` container with fixed dimensions and a drop shadow.
-- Adds a small CSS overlay to center pages on a dark background and to show
-  configurable page labels.
+- Adds simple page labels (“Page 1”, “Page 2”, …) above each page.
 
 
 ## How it works

@@ -121,8 +121,7 @@ python epub_to_html.py input.epub [output.html]
 
 - If `output.html` is **omitted**, the script creates a file with the same base
   name as `input.epub`, but with a `.html` extension in the current directory.
-- If `output.html` is **provided**, it is used as the exact path of the output
-  file (directories will be created if needed).
+- If output.html is provided, it is used as the exact path of the output file. The parent directory must already exist.
 
 ### Behaviour
 

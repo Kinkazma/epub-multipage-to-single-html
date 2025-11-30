@@ -80,10 +80,11 @@ def read_css(root: Path) -> str:
 
     If no CSS directory is found, returns an empty string.
     """
-    css_dir = next((p for p in (root / 'css').iterdir() if p.is_dir()), None) if (root / 'css').exists() else None
-    if css_dir is None and (root / 'css').exists():
+    css_root = root / 'css'
+    css_dir = next((p for p in css_root.iterdir() if p.is_dir()), None) if css_root.exists() else None
+    if css_dir is None and css_root.exists():
         # css is a directory itself
-        css_dir = root / 'css'
+        css_dir = css_root
     css = []
     if css_dir and css_dir.exists():
         for file in css_dir.iterdir():
@@ -195,14 +196,20 @@ def extract_body_content(page_path: Path) -> str:
     return body
 
 
-def build_html_document(pages: List[str], css: str) -> str:
-    """Assemble the final HTML document from page contents and CSS."""
+def build_html_document(pages: List[str], css: str, title: str) -> str:
+    """Assemble the final HTML document from page contents and CSS.
+
+    The `title` is used both for the <title> element and the visible <h1> header.
+    """
+    # Basic escaping for the title
+    safe_title = title.replace('<', '&lt;').replace('>', '&gt;')
+
     parts: List[str] = []
     parts.append('<!DOCTYPE html>')
     parts.append('<html lang="fr">')
     parts.append('<head>')
     parts.append('<meta charset="utf-8">')
-    parts.append('<title>Document EPUB converti</title>')
+    parts.append(f'<title>{safe_title}</title>')
     parts.append('<style>')
     parts.append(css)
     parts.append('html, body { margin:0; padding:0; background:#111; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }')
@@ -216,7 +223,7 @@ def build_html_document(pages: List[str], css: str) -> str:
     parts.append('</head>')
     parts.append('<body>')
     parts.append('<div class="wrapper">')
-    parts.append('<h1>Document converti</h1>')
+    parts.append(f'<h1>{safe_title}</h1>')
     for idx, content in enumerate(pages, 1):
         parts.append(f'<p class="page-label">Page {idx}</p>')
         parts.append(f'<div class="page page-{idx}" id="page-{idx}">')
@@ -269,8 +276,10 @@ def convert_epub(epub_path: Path, output_path: Path) -> None:
             pages_html.append(body)
         if not pages_html:
             raise RuntimeError('No pages could be processed from the EPUB')
+        # Use the input filename stem as document title
+        doc_title = epub_path.stem
         # Build final document
-        final_html = build_html_document(pages_html, css_text)
+        final_html = build_html_document(pages_html, css_text, doc_title)
         output_path.write_text(final_html, encoding='utf-8')
 
 
@@ -287,7 +296,6 @@ def main(argv: Optional[List[str]] = None) -> None:
     if not epub_path.is_file():
         print(f"Error: input file {epub_path} does not exist", file=sys.stderr)
         sys.exit(1)
-    output_path: Path
     if args.output:
         output_path = args.output
     else:
